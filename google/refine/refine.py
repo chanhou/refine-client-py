@@ -30,8 +30,19 @@ import urllib2_file
 import urllib2
 import urlparse
 
-from google.refine import facet
-from google.refine import history
+import sys
+# sys.path.append('/home/chan/.google-refine-2.5/refine-client-py/google/refine')
+# sys.path.append('/home/chan/.google-refine-2.5/refine-client-py/google')
+
+# print sys.path
+
+print '###########################'
+
+import facet
+import history
+
+# from google.refine import facet
+# from google.refine import history
 
 REFINE_HOST = os.environ.get('OPENREFINE_HOST', os.environ.get('GOOGLE_REFINE_HOST', '127.0.0.1'))
 REFINE_PORT = os.environ.get('OPENREFINE_PORT', os.environ.get('GOOGLE_REFINE_PORT', '3333'))
@@ -75,9 +86,16 @@ class RefineServer(object):
                 params['project'] = project_id
         if params:
             url += '?' + urllib.urlencode(params)
+
+        # print 'url::',url
+
         req = urllib2.Request(url)
+        # print 'req::',req
         if data:
+            # print 'data::',data
+
             req.add_data(data)  # data = urllib.urlencode(data)
+            # print 'req::',req
         #req.add_header('Accept-Encoding', 'gzip')
         try:
             response = urllib2.urlopen(req)
@@ -141,7 +159,7 @@ class Refine:
     def get_project_name(self, project_id):
         """Returns project name given project_id."""
         projects = self.list_projects()
-        return projects[project_id]['name']
+        return projects[str(project_id)]['name']
 
     def open_project(self, project_id):
         """Open a Refine project."""
@@ -232,6 +250,9 @@ class Refine:
                 return ''
             return str(opt)
 
+        # print process_quotes
+        # print s(process_quotes)
+
         # the new APIs requires a json in the 'option' POST or GET argument
         # POST is broken at the moment, so we send it in the URL
         new_style_options = dict(opts, **{
@@ -245,12 +266,21 @@ class Refine:
         options = {
             'format': project_format,
             'separator': s(separator),
-            'ignore-lines': s(ignore_lines),
+
+            # 'ignore-lines': s(ignore_lines),
+            'ignore': s(ignore_lines),
+
             'header-lines': s(header_lines),
-            'skip-data-lines': s(skip_data_lines),
+
+            # 'skip-data-lines': s(skip_data_lines),
+            'skip': s(skip_data_lines),
+
             'limit': s(limit),
             'guess-value-type': s(guess_cell_value_types),
-            'process-quotes': s(process_quotes),
+
+            # 'process-quotes': s(process_quotes),
+            'ignore-quotes': s(process_quotes),
+
             'store-blank-rows': s(store_blank_rows),
             'store-blank-cells-as-nulls': s(store_blank_cells_as_nulls),
             'include-file-sources': s(include_file_sources),
@@ -268,12 +298,21 @@ class Refine:
             project_name = (project_file or 'New project').rsplit('.', 1)[0]
             project_name = os.path.basename(project_name)
         options['project-name'] = project_name
+
+        print options
+
         response = self.server.urlopen(
             'create-project-from-upload', options, params
         )
+
+        # print response
+
         # expecting a redirect to the new project containing the id in the url
         url_params = urlparse.parse_qs(
             urlparse.urlparse(response.geturl()).query)
+
+        print url_params
+
         if 'project' in url_params:
             project_id = url_params['project'][0]
             return RefineProject(self.server, project_id)
@@ -381,6 +420,7 @@ class RefineProject:
         if 'historyEntry' in response:
             # **response['historyEntry'] won't work as keys are unicode :-/
             he = response['historyEntry']
+            print he['description']
             self.history_entry = history.HistoryEntry(he['id'], he['time'],
                                                       he['description'])
         return response
@@ -428,10 +468,21 @@ class RefineProject:
         return response_json['code']  # can be 'ok' or 'pending'
 
     def export(self, export_format='tsv'):
-        """Return a fileobject of a project's data."""
+        """Return a fileobject of a project's data.
+        .attr("action", "/command/core/export-rows/" + name + ((ext) ? ("." + ext) : ""))
+        """
         url = ('export-rows/' + urllib.quote(self.project_name()) + '.' +
                export_format)
         return self.do_raw(url, data={'format': export_format})
+
+    # def export_project(self):
+    #     """Return google refine project
+    #     .attr("action", "/command/core/export-project/" + name + ".google-refine.tar.gz")
+    #     /command/core/export-project/conf_inst_test.google-refine.tar.gz
+    #     """
+    #     url = ('export-project/' + urllib.quote(self.project_name()) + '.google-refine.tar.gz')
+    #     return self.do_raw(url, data=)
+
 
     def export_rows(self, **kwargs):
         """Return an iterable of parsed rows of a project's data."""
@@ -490,7 +541,8 @@ class RefineProject:
         return response
 
     def edit(self, column, edit_from, edit_to):
-        edits = [{'from': [edit_from], 'to': edit_to}]
+        edits = [{'from': edit_from, 'to': edit_to}]
+        # print edits
         return self.mass_edit(column, edits)
 
     def mass_edit(self, column, edits, expression='value'):
