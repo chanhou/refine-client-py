@@ -115,11 +115,11 @@ def create_project(file_des, filename):
         store_blank_cells_as_nulls=False)
 
 def dump_csv(cluster, des):
-    with open('des','wb') as f:
+    with open(des,'wb') as f:
         for ind,i in enumerate(cluster):
             for q in i:
                 f.write(q.values()[1].encode('UTF-8')+'\t')
-                f.write('\n')
+            f.write('\n')
                 #if ind==3:
                 #    break
 

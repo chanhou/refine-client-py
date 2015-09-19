@@ -115,11 +115,11 @@ def create_project(file_des, filename):
         store_blank_cells_as_nulls=False)
 
 def dump_csv(cluster, des):
-    with open('des','wb') as f:
+    with open(des,'wb') as f:
         for ind,i in enumerate(cluster):
             for q in i:
                 f.write(q.values()[1].encode('UTF-8')+'\t')
-                f.write('\n')
+            f.write('\n')
                 #if ind==3:
                 #    break
 
@@ -160,6 +160,8 @@ if __name__ == '__main__':
     # read project by id
     bbb = refine.RefineProject(refine.RefineServer(), 1923012213313)
 
+    ddd = bbb.compute_clusters('Affiliation_name')
+
     # rename column
     # bbb.rename_column('Column 1', 'Affiliation_ID')
     # bbb.rename_column('Column 2', 'Affiliation_name')
@@ -172,6 +174,6 @@ if __name__ == '__main__':
     # export project to a tsv file
     #export_project(bbb,oooutput('/tmp2/MicrosoftAcademicGraph_clean/Affiliations.tsv'))
 
-    ddd = bbb.compute_clusters('Affiliation_name')
-    dump_csv(ddd, '/tmp2/MicrosoftAcademicGraph_clean/Affiliation_list.csv')
+    #ddd = bbb.compute_clusters('Affiliation_name')
+    #dump_csv(ddd, '/tmp2/MicrosoftAcademicGraph_clean/Affiliation_list.csv')
 
