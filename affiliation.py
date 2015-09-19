@@ -114,6 +114,16 @@ def create_project(file_des, filename):
         guess_cell_value_types=False,process_quotes=False,\
         store_blank_cells_as_nulls=False)
 
+def dump_csv(cluster, des):
+    with open('des','wb') as f:
+        for ind,i in enumerate(cluster):
+            for q in i:
+                f.write(q.values()[1].encode('UTF-8')+'\t')
+                f.write('\n')
+                #if ind==3:
+                #    break
+
+
 #noinspection PyPep8Naming
 def main():
     """Main."""
@@ -157,8 +167,11 @@ if __name__ == '__main__':
     
     # doing cluster and edit by refine
     # see the function above if only want the cluster result
-    cluster_edit(bbb, 'Affiliation_name')
+    #cluster_edit(bbb, 'Affiliation_name')
     
     # export project to a tsv file
-    export_project(bbb,oooutput('/tmp2/MicrosoftAcademicGraph_clean/Affiliations.tsv'))
+    #export_project(bbb,oooutput('/tmp2/MicrosoftAcademicGraph_clean/Affiliations.tsv'))
+
+    ddd = bbb.compute_clusters('Affiliation_name')
+    dump_csv(ddd, '/tmp2/MicrosoftAcademicGraph_clean/Affiliation_list.csv')
 
